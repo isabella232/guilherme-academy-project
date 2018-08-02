@@ -12,19 +12,32 @@ contract('ProofStorage', function(accounts) {
   it("should create a new proof", async () => {
     const proofStorage = await ProofStorage.deployed();
 
-    await proofStorage.provideProof(validProof);
+    await proofStorage.provideProof(validProof, {from: alice});
+
+    const logNewProof = await proofStorage.LogNewProof();
+    const log = await new Promise(function(resolve, reject) {
+      logNewProof.watch(function(error, log){ resolve(log);});
+    });
+
+    const logAddress = log.args._address;
+    const logProof = log.args._proof;
+    const logCreated = log.args._timestamp;
 
     const proof = await proofStorage.getProof.call(validProof);
 
-    assert.notEmpty(proof, "Should return Array(3)");
+    assert.notEmpty(proof, "Sould be Array[3]")
+    assert.equal(logAddress, alice, "Should match Alice's address");
+    assert.equal(logProof, validProof, "Should match " + proof);
+    assert.equal(logProof, validProof, "Should match " + proof);
+    assert.isAtLeast(logCreated.toNumber(), 1, "Should be greater than 0");
   });
 
-  it("should return an error if proof doesn't exist", async () => {
-    const proofStorage = await ProofStorage.deployed();
+  // it("should return an error if proof doesn't exist", async () => {
+  //   const proofStorage = await ProofStorage.deployed();
 
-    const proof = await proofStorage.getProof.call(invalidProof);
+  //   const proof = await proofStorage.getProof.call(invalidProof);
 
-    assert.notEmpty(proof, "Should not return Array(3)");
-  });
+  //   assert.fail("0x", proof[2], "Excpetion not thorwn: Should not return Array(3)");
+  // });
 
 });

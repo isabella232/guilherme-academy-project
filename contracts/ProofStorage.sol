@@ -6,14 +6,15 @@ contract ProofStorage {
 
     enum State { Empty, Generated, Aknowledged, Verified, Discarded }
     
-    event LogNewProof(string _proof);
-    event LogProofAknowledged(string _proof);
-    event LogProofVerified(string _proof);
-    event LogProofDiscarded(string _proof);
-    event LogProofPayout(string _proof);
+    event LogNewProof(string _proof, address _address, uint _timestamp);
+    event LogProofAknowledged(string _proof, address _address, uint _timestamp);
+    event LogProofVerified(string _proof, address _address, uint _timestamp);
+    event LogProofDiscarded(string _proof, address _address, uint _timestamp);
+    event LogProofPayout(string _proof, address _address, uint _amount, uint _timestamp);
 
     struct Proof {
-        uint timestamp;
+        uint created;
+        uint stateChanged;
         State state;
         address sender;
     }
@@ -56,39 +57,41 @@ contract ProofStorage {
     
     function provideProof(string _proof) 
     public isEmpty(_proof) {
-        proofs[_proof] = Proof(block.timestamp, State.Generated, msg.sender);
-        emit LogNewProof(_proof);
+        proofs[_proof] = Proof(block.timestamp, block.timestamp, State.Generated, msg.sender);
+        emit LogNewProof(_proof, msg.sender, proofs[_proof].stateChanged);
     }
     
     function aknowledgeProof(string _proof) 
     public isOwner isGenerated(_proof) {
         proofs[_proof].state = State.Aknowledged;
-        emit LogProofAknowledged(_proof);
+        emit LogProofAknowledged(_proof, proofs[_proof].sender, proofs[_proof].stateChanged);
     }
     
     function verifyProof(string _proof) 
     public isOwner isAknowledge(_proof) {
         proofs[_proof].state = State.Verified;
-        emit LogProofVerified(_proof);
-        emit LogProofPayout(_proof);
+        emit LogProofVerified(_proof, proofs[_proof].sender, proofs[_proof].stateChanged);
+        emit LogProofPayout(_proof, proofs[_proof].sender, 20, proofs[_proof].stateChanged);
         // At this point, a token transfer should be triggered
     }
 
     function discardProof(string _proof) 
     public isOwner isAknowledge(_proof) {
         proofs[_proof].state = State.Discarded;
-        emit LogProofDiscarded(_proof);
+        emit LogProofDiscarded(_proof, proofs[_proof].sender, proofs[_proof].stateChanged);
     }
     
     function getProof(string _proof) 
     public view isProof(_proof) isCreaterOrOwner(_proof)
     returns(
         uint,
+        uint,
         State,
         address
     ) {
         return (
-            proofs[_proof].timestamp, 
+            proofs[_proof].created, 
+            proofs[_proof].stateChanged, 
             proofs[_proof].state,
             proofs[_proof].sender
         );
