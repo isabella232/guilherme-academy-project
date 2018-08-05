@@ -2,8 +2,8 @@ pragma solidity ^0.4.24;
 
 contract ProofStorage {
 
-    address owner;
-    bool emergencyStop;
+    address public owner;
+    bool public lock;
 
     enum State { Empty, Generated, Acknowledged, Verified, Discarded }
     
@@ -12,6 +12,7 @@ contract ProofStorage {
     event LogProofVerified(string _proof, address _address, State _state, uint _timestamp);
     event LogProofDiscarded(string _proof, address _address, State _state, uint _timestamp);
     event LogProofPayout(string _proof, address _address, State _state, uint _amount, uint _timestamp);
+    event LogLockTriggered(bool _lock);
 
     struct Proof {
         uint created;
@@ -36,8 +37,8 @@ contract ProofStorage {
         _;
     }
     
-    modifier isStopped() {
-        require(!emergencyStop, "Contract is locked");
+    modifier isLocked() {
+        require(!lock, "Contract is locked");
         _;
     }
 
@@ -60,21 +61,27 @@ contract ProofStorage {
         require(proofs[_proof].state == State.Acknowledged, "Proof needs to be on an Acknowledged state");
         _;
     }
+
+    function triggerLock()
+    public isOwner() {
+        lock = !lock;
+        emit LogLockTriggered(lock);
+    }
     
     function provideProof(string _proof) 
-    public isEmpty(_proof) {
+    public isLocked() isEmpty(_proof) {
         proofs[_proof] = Proof(block.timestamp, block.timestamp, State.Generated, msg.sender);
         emit LogNewProof(_proof, proofs[_proof].sender, proofs[_proof].state, proofs[_proof].stateChanged);
     }
     
     function aknowledgeProof(string _proof) 
-    public isOwner isGenerated(_proof) {
+    public isLocked() isOwner() isGenerated(_proof) {
         proofs[_proof].state = State.Acknowledged;
         emit LogProofAcknowledged(_proof, proofs[_proof].sender, proofs[_proof].state, proofs[_proof].stateChanged);
     }
     
     function verifyProof(string _proof) 
-    public isOwner isAknowledge(_proof) {
+    public isLocked() isOwner() isAknowledge(_proof) {
         proofs[_proof].state = State.Verified;
         emit LogProofVerified(_proof, proofs[_proof].sender, proofs[_proof].state, proofs[_proof].stateChanged);
         // At this point, a token transfer should be triggered
@@ -82,7 +89,7 @@ contract ProofStorage {
     }
 
     function discardProof(string _proof) 
-    public isOwner isAknowledge(_proof) {
+    public isLocked() isOwner() isAknowledge(_proof) {
         proofs[_proof].state = State.Discarded;
         emit LogProofDiscarded(_proof, proofs[_proof].sender, proofs[_proof].state, proofs[_proof].stateChanged);
     }
