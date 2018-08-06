@@ -5,22 +5,6 @@ App = {
   proofs: [],
 
   init: function () {
-    // Load pets.
-    // $.getJSON('../pets.json', function (data) {
-    //   var petsRow = $('#petsRow');
-    //   var petTemplate = $('#petTemplate');
-
-    //   for (i = 0; i < data.length; i++) {
-    //     petTemplate.find('.panel-title').text(data[i].name);
-    //     petTemplate.find('img').attr('src', data[i].picture);
-    //     petTemplate.find('.pet-breed').text(data[i].breed);
-    //     petTemplate.find('.pet-age').text(data[i].age);
-    //     petTemplate.find('.pet-location').text(data[i].location);
-    //     petTemplate.find('.btn-adopt').attr('data-id', data[i].id);
-
-    //     petsRow.append(petTemplate.html());
-    //   }
-    // });
 
     return App.initWeb3();
   },
@@ -50,7 +34,11 @@ App = {
   },
 
   initIPFS: function () {
-    const ipfs = new Ipfs({ host: 'ipfs.infura.io', port: 5001, protocol: 'https' });
+    const ipfs = new Ipfs({
+      host: 'ipfs.infura.io',
+      port: 5001,
+      protocol: 'https'
+    });
     App.ipfs = ipfs;
 
     return App.bindEvents();
@@ -70,8 +58,11 @@ App = {
   newProof: async function () {
     event.preventDefault();
 
-    var ipfsOut = await App.ipfs.files.add(document.getElementById('fileinput'))
-console.log(ipfsOut)
+    $(".showbox").toggle();
+
+    const proof = document.getElementById('proofInput').value
+    var ipfsOut = await App.ipfs.files.add(new App.ipfs.types.Buffer(proof))
+
     const proofStorageInstance = await App.contracts.ProofStorage.deployed();
     await proofStorageInstance.provideProof(ipfsOut[0].hash, {
       from: web3.eth.accounts[0],
@@ -93,18 +84,18 @@ console.log(ipfsOut)
       if (App.proofs[i]._state.toNumber() == 1) {
         proofTemplate.find('.btn-state').attr('class', 'btn btn-state btn-ack btn-primary');
         proofTemplate.find('.btn-state').html('Acknowledge');
-      }
-      else if (App.proofs[i]._state.toNumber() == 2) {
+      } else if (App.proofs[i]._state.toNumber() == 2) {
         proofTemplate.find('.btn-state').attr('class', 'btn btn-state btn-ver btn-success');
         proofTemplate.find('.btn-state').html('Verify');
-      }
-      else if (App.proofs[i]._state.toNumber() == 3) {
+      } else if (App.proofs[i]._state.toNumber() == 3) {
         proofTemplate.find('.btn-state').attr('class', 'btn btn-state btn-dis btn-danger');
         proofTemplate.find('.btn-state').html('Discard');
       }
 
       proofsRow.append(proofTemplate.html());
     }
+
+    $(".showbox").toggle();
   }
 
 };

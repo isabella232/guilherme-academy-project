@@ -32,8 +32,8 @@
     <div>
       <div class="input-group">
         <div class="form-group">
-          <label for="fileinput">Upload proof</label>
-          <input type="file" class="form-control-file" id="fileinput">
+          <label for="proofInput">Proof</label>
+          <input type="text" class="form-control-text" id="proofInput">
         </div>
         <span class="input-group-btn">
           <button class="btn btn-default btn-add-proof" type="button" data-id="0">Add Proof</button>
@@ -74,8 +74,13 @@
       </div>
     </div>
   </div>
-
-  <img id="loader" src="https://loading.io/spinners/double-ring/lg.double-ring-spinner.gif">
+  <div class="showbox">
+    <div class="loader">
+      <svg class="circular" viewBox="25 25 50 50">
+        <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-width="2" stroke-miterlimit="10"/>
+      </svg>
+    </div>
+  </div>
   <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
   <!-- Include all compiled plugins (below), or include individual files as needed -->
