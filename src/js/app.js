@@ -46,11 +46,17 @@ App = {
 
   bindEvents: async function () {
     $(document).on('click', '.btn-add-proof', App.newProof);
+    $(document).on('click', '.btn-ack-proof', App.ackProof);
 
     var proofStorageInstance = await App.contracts.ProofStorage.deployed();
     const logNewProof = await proofStorageInstance.LogNewProof();
     logNewProof.watch(function (error, log) {
-      App.proofs.push(log.args)
+      App.proofs.push(log.args._proof)
+      App.loadProofs()
+    });
+
+    const logAckProof = await proofStorageInstance.LogProofAcknowledged();
+    logAckProof.watch(function (error, log) {
       App.loadProofs()
     });
   },
@@ -71,24 +77,41 @@ App = {
 
   },
 
-  loadProofs: function () {
+  ackProof: async function (e) {
+    event.preventDefault();
+
+    const proof = $(e.target).attr('proof')
+
+    const proofStorageInstance = await App.contracts.ProofStorage.deployed();
+    await proofStorageInstance.aknowledgeProof(proof, {
+      from: web3.eth.accounts[0],
+      gas: 100000
+    });
+  },
+
+  loadProofs: async function () {
     var proofsRow = $('#proofsRow');
     proofsRow.empty();
     var proofTemplate = $('#proofTemplate');
     for (i = 0; i < App.proofs.length; i++) {
+      const proofStorageInstance = await App.contracts.ProofStorage.deployed();
+      const proof = await proofStorageInstance.getProof(App.proofs[i], {from: web3.eth.accounts[0]});
       proofTemplate.find('.panel-title').text("Proof");
       proofTemplate.find('img').attr('src', './images/boxer.jpeg');
-      proofTemplate.find('.proof-name').text(App.proofs[i]._proof);
-      proofTemplate.find('.proof-sender').text(App.proofs[i]._address);
-      proofTemplate.find('.proof-status').text(App.proofs[i]._state.toNumber());
-      if (App.proofs[i]._state.toNumber() == 1) {
-        proofTemplate.find('.btn-state').attr('class', 'btn btn-state btn-ack btn-primary');
+      proofTemplate.find('.proof-name').text(App.proofs[i]);
+      proofTemplate.find('.proof-sender').text(proof[3]);
+      proofTemplate.find('.proof-status').text(proof[2].toNumber());
+      if (proof[2].toNumber() == 1) {
+        proofTemplate.find('.btn-state').attr('class', 'btn btn-state btn-ack-proof btn-primary');
+        proofTemplate.find('.btn-state').attr('proof', App.proofs[i]);
         proofTemplate.find('.btn-state').html('Acknowledge');
-      } else if (App.proofs[i]._state.toNumber() == 2) {
-        proofTemplate.find('.btn-state').attr('class', 'btn btn-state btn-ver btn-success');
+      } else if (proof[2].toNumber() == 2) {
+        proofTemplate.find('.btn-state').attr('class', 'btn btn-state btn-ver-proof btn-success');
+        proofTemplate.find('.btn-state').attr('proof', App.proofs[i]);
         proofTemplate.find('.btn-state').html('Verify');
-      } else if (App.proofs[i]._state.toNumber() == 3) {
-        proofTemplate.find('.btn-state').attr('class', 'btn btn-state btn-dis btn-danger');
+      } else if (proof[2].toNumber() == 3) {
+        proofTemplate.find('.btn-state').attr('class', 'btn btn-state btn-dis-proof btn-danger');
+        proofTemplate.find('.btn-state').attr('proof', App.proofs[i]);
         proofTemplate.find('.btn-state').html('Discard');
       }
 
