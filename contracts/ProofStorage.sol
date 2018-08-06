@@ -37,7 +37,7 @@ contract ProofStorage {
         _;
     }
     
-    modifier isLocked() {
+    modifier isNotLocked() {
         require(!lock, "Contract is locked");
         _;
     }
@@ -69,19 +69,19 @@ contract ProofStorage {
     }
     
     function provideProof(string _proof) 
-    public isLocked() isEmpty(_proof) {
+    public isNotLocked() isEmpty(_proof) {
         proofs[_proof] = Proof(block.timestamp, block.timestamp, State.Generated, msg.sender);
         emit LogNewProof(_proof, proofs[_proof].sender, proofs[_proof].state, proofs[_proof].stateChanged);
     }
     
     function aknowledgeProof(string _proof) 
-    public isLocked() isOwner() isGenerated(_proof) {
+    public isNotLocked() isOwner() isGenerated(_proof) {
         proofs[_proof].state = State.Acknowledged;
         emit LogProofAcknowledged(_proof, proofs[_proof].sender, proofs[_proof].state, proofs[_proof].stateChanged);
     }
     
     function verifyProof(string _proof) 
-    public isLocked() isOwner() isAknowledge(_proof) {
+    public isNotLocked() isOwner() isAknowledge(_proof) {
         proofs[_proof].state = State.Verified;
         emit LogProofVerified(_proof, proofs[_proof].sender, proofs[_proof].state, proofs[_proof].stateChanged);
         // At this point, a token transfer should be triggered
@@ -89,7 +89,7 @@ contract ProofStorage {
     }
 
     function discardProof(string _proof) 
-    public isLocked() isOwner() isAknowledge(_proof) {
+    public isNotLocked() isOwner() isAknowledge(_proof) {
         proofs[_proof].state = State.Discarded;
         emit LogProofDiscarded(_proof, proofs[_proof].sender, proofs[_proof].state, proofs[_proof].stateChanged);
     }
