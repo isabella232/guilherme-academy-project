@@ -1,3 +1,7 @@
+.text-small {
+    font-size: 10px;
+}
+
 .showbox {
     position: absolute;
     top: 0;

@@ -47,6 +47,9 @@ App = {
   bindEvents: async function () {
     $(document).on('click', '.btn-add-proof', App.newProof);
     $(document).on('click', '.btn-ack-proof', App.ackProof);
+    $(document).on('click', '.btn-ver-proof', App.verProof);
+    $(document).on('click', '.btn-dis-proof', App.disProof);
+    $(document).on('click', '.btn-rnd', App.rndProof);
 
     var proofStorageInstance = await App.contracts.ProofStorage.deployed();
     const logNewProof = await proofStorageInstance.LogNewProof();
@@ -59,6 +62,26 @@ App = {
     logAckProof.watch(function (error, log) {
       App.loadProofs()
     });
+
+    const logVerProof = await proofStorageInstance.LogProofVerified();
+    logVerProof.watch(function (error, log) {
+      App.loadProofs()
+    });
+
+    const logDisProof = await proofStorageInstance.LogProofDiscarded();
+    logDisProof.watch(function (error, log) {
+      App.loadProofs()
+    });
+  },
+
+  rndProof: function () {
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  
+    for (var i = 0; i < 100; i++)
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+  
+      $('#proofInput').val(text)
   },
 
   newProof: async function () {
@@ -89,13 +112,45 @@ App = {
     });
   },
 
+  verProof: async function (e) {
+    event.preventDefault();
+
+    const proof = $(e.target).attr('proof')
+
+    const proofStorageInstance = await App.contracts.ProofStorage.deployed();
+    await proofStorageInstance.verifyProof(proof, {
+      from: web3.eth.accounts[0],
+      gas: 100000
+    });
+  },
+
+  disProof: async function (e) {
+    event.preventDefault();
+
+    const proof = $(e.target).attr('proof')
+
+    const proofStorageInstance = await App.contracts.ProofStorage.deployed();
+    await proofStorageInstance.discardProof(proof, {
+      from: web3.eth.accounts[0],
+      gas: 100000
+    });
+  },
+
   loadProofs: async function () {
     var proofsRow = $('#proofsRow');
-    proofsRow.empty();
-    var proofTemplate = $('#proofTemplate');
+    var proofTemplate;
     for (i = 0; i < App.proofs.length; i++) {
       const proofStorageInstance = await App.contracts.ProofStorage.deployed();
       const proof = await proofStorageInstance.getProof(App.proofs[i], {from: web3.eth.accounts[0]});
+      if (proof[2].toNumber() > 1) {
+        proofTemplate = $('#'+App.proofs[i])
+        console.log(proofTemplate)
+      }
+      else {
+        proofTemplate = $('#proofTemplate').clone()
+        proofTemplate.attr('id', App.proofs[i])
+        proofTemplate.css("display", "block");
+      }
       proofTemplate.find('.panel-title').text("Proof");
       proofTemplate.find('img').attr('src', './images/boxer.jpeg');
       proofTemplate.find('.proof-name').text(App.proofs[i]);
@@ -109,13 +164,25 @@ App = {
         proofTemplate.find('.btn-state').attr('class', 'btn btn-state btn-ver-proof btn-success');
         proofTemplate.find('.btn-state').attr('proof', App.proofs[i]);
         proofTemplate.find('.btn-state').html('Verify');
+
+        proofTemplate.find('.btn-state-hidden').attr('class', 'btn btn-state-hidden btn-dis-proof btn-danger');
+        proofTemplate.find('.btn-state-hidden').attr('proof', App.proofs[i]);
+        proofTemplate.find('.btn-state-hidden').html('Discard');
+        proofTemplate.find('.btn-state-hidden').css('visibility', "visible");
       } else if (proof[2].toNumber() == 3) {
-        proofTemplate.find('.btn-state').attr('class', 'btn btn-state btn-dis-proof btn-danger');
-        proofTemplate.find('.btn-state').attr('proof', App.proofs[i]);
-        proofTemplate.find('.btn-state').html('Discard');
+        proofTemplate.find('.btn-state').attr('class', 'btn btn-state btn-success');
+        proofTemplate.find('.btn-state').attr('disabled', '');
+        proofTemplate.find('.btn-state').html('Verified');
+        proofTemplate.find('.btn-state-hidden').css('display', "none");
+      } else if (proof[2].toNumber() == 4) {
+        proofTemplate.find('.btn-state-hidden').attr('class', 'btn btn-state-hidden btn-danger');
+        proofTemplate.find('.btn-state-hidden').attr('disabled', '');
+        proofTemplate.find('.btn-state-hidden').html('Discarded');
+        proofTemplate.find('.btn-state-hidden').css('visibility', "visible");
+        proofTemplate.find('.btn-state').css('display', "none");
       }
 
-      proofsRow.append(proofTemplate.html());
+      proofsRow.append(proofTemplate);
     }
 
     $(".showbox").toggle();
