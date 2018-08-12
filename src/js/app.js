@@ -90,53 +90,71 @@ App = {
     event.preventDefault();
     $(".showbox").show();
 
-    const proof = document.getElementById('proofInput').value
-    var ipfsOut = await App.ipfs.files.add(new App.ipfs.types.Buffer(proof))
-
-    const proofStorageInstance = await App.contracts.ProofStorage.deployed();
-    await proofStorageInstance.provideProof(ipfsOut[0].hash, {
-      from: web3.eth.accounts[0],
-      gas: 100000
-    });
+    try {
+      const proof = document.getElementById('proofInput').value
+      var ipfsOut = await App.ipfs.files.add(new App.ipfs.types.Buffer(proof))
+  
+      const proofStorageInstance = await App.contracts.ProofStorage.deployed();
+      await proofStorageInstance.provideProof(ipfsOut[0].hash, {
+        from: web3.eth.accounts[0],
+        gas: 100000
+      });
+    } catch (error) {
+    }
   },
 
   ackProof: async function (e) {
     event.preventDefault();
     $(".showbox").show();
 
-    const proof = $(e.target).attr('proof')
-
-    const proofStorageInstance = await App.contracts.ProofStorage.deployed();
-    await proofStorageInstance.aknowledgeProof(proof, {
-      from: web3.eth.accounts[0],
-      gas: 100000
-    });
+    try {
+      const proof = $(e.target).attr('proof')
+  
+      const proofStorageInstance = await App.contracts.ProofStorage.deployed();
+      await proofStorageInstance.aknowledgeProof(proof, {
+        from: web3.eth.accounts[0],
+        gas: 100000
+      });
+    } catch (error) {
+      $('#exampleModalCenter').modal()
+      $(".showbox").hide();
+    }
   },
 
   verProof: async function (e) {
     event.preventDefault();
     $(".showbox").show();
 
-    const proof = $(e.target).attr('proof')
-
-    const proofStorageInstance = await App.contracts.ProofStorage.deployed();
-    await proofStorageInstance.verifyProof(proof, {
-      from: web3.eth.accounts[0],
-      gas: 100000
-    });
+    try {
+      const proof = $(e.target).attr('proof')
+  
+      const proofStorageInstance = await App.contracts.ProofStorage.deployed();
+      await proofStorageInstance.verifyProof(proof, {
+        from: web3.eth.accounts[0],
+        gas: 100000
+      });
+    } catch (error) {
+      $('#exampleModalCenter').modal()
+      $(".showbox").hide();
+    }
   },
 
   disProof: async function (e) {
     event.preventDefault();
     $(".showbox").show();
 
-    const proof = $(e.target).attr('proof')
-
-    const proofStorageInstance = await App.contracts.ProofStorage.deployed();
-    await proofStorageInstance.discardProof(proof, {
-      from: web3.eth.accounts[0],
-      gas: 100000
-    });
+    try {
+      const proof = $(e.target).attr('proof')
+  
+      const proofStorageInstance = await App.contracts.ProofStorage.deployed();
+      await proofStorageInstance.discardProof(proof, {
+        from: web3.eth.accounts[0],
+        gas: 100000
+      });
+    } catch (error) {
+      $('#exampleModalCenter').modal()
+      $(".showbox").hide();
+    }
   },
 
   loadProofs: async function () {
