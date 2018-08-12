@@ -5,7 +5,7 @@ App = {
   proofs: [],
 
   init: function () {
-
+    $(".showbox").show();
     return App.initWeb3();
   },
 
@@ -72,6 +72,8 @@ App = {
     logDisProof.watch(function (error, log) {
       App.loadProofs()
     });
+
+    App.loadProofs()
   },
 
   rndProof: function () {
@@ -86,8 +88,7 @@ App = {
 
   newProof: async function () {
     event.preventDefault();
-
-    $(".showbox").toggle();
+    $(".showbox").show();
 
     const proof = document.getElementById('proofInput').value
     var ipfsOut = await App.ipfs.files.add(new App.ipfs.types.Buffer(proof))
@@ -97,11 +98,11 @@ App = {
       from: web3.eth.accounts[0],
       gas: 100000
     });
-
   },
 
   ackProof: async function (e) {
     event.preventDefault();
+    $(".showbox").show();
 
     const proof = $(e.target).attr('proof')
 
@@ -114,6 +115,7 @@ App = {
 
   verProof: async function (e) {
     event.preventDefault();
+    $(".showbox").show();
 
     const proof = $(e.target).attr('proof')
 
@@ -126,6 +128,7 @@ App = {
 
   disProof: async function (e) {
     event.preventDefault();
+    $(".showbox").show();
 
     const proof = $(e.target).attr('proof')
 
@@ -144,7 +147,6 @@ App = {
       const proof = await proofStorageInstance.getProof(App.proofs[i], {from: web3.eth.accounts[0]});
       if (proof[2].toNumber() > 1) {
         proofTemplate = $('#'+App.proofs[i])
-        console.log(proofTemplate)
       }
       else {
         proofTemplate = $('#proofTemplate').clone()
@@ -185,7 +187,7 @@ App = {
       proofsRow.append(proofTemplate);
     }
 
-    $(".showbox").toggle();
+    $(".showbox").hide();
   }
 
 };
