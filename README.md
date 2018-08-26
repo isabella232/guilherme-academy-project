@@ -1,6 +1,7 @@
 # ConsenSys Academy Final Project - August 2018
 
-**Developr:** Guilherme Campos
+**Developer:** Guilherme Campos
+
 **Email:** guilherme.campos@consensys.net
 
 ## Purpose of project
